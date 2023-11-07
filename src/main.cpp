@@ -3,11 +3,15 @@
 #include <ArduinoJson.h>
 
 // Configuración de la red Wi-Fi
-// const char *ssid = "Galaxy Note10+";
-// const char *password = "ectWy729nc.042swVGT";
-const char *ssid = "ERIKA MENDEZ";
-const char *password = "Or7oIOZ*1G98OiRL";
-const char *host = "192.168.10.19";
+//const char *ssid = "Galaxy Note10+";
+//const char *password = "ectWy729nc.042swVGT";
+// const char *ssid = "U-SIGLOXXI";
+// const char *password = "UdeCsigloXXI";
+//  const char *ssid = "ERIKA MENDEZ";
+//  const char *password = "Or7oIOZ*1G98OiRL";
+const char *ssid = "FAMILIA SB";
+const char *password = "88180137";
+const char *host = "192.168.20.95"; //"192.168.126.75";//
 const int port = 3000;
 
 /*pines leds*/
@@ -20,13 +24,13 @@ byte led5 = 27;
 void encenderLeds(int led)
 {
   digitalWrite(led, HIGH);
-  delay(100);
+  delay(10);
 }
 
 void apagarLeds(int led)
 {
   digitalWrite(led, LOW);
-  delay(100);
+  delay(10);
 }
 
 // metodo GET
@@ -44,7 +48,8 @@ String GET(String hostS)
   }
   return response;
 }
-void controlarLeds(String jsonData)
+
+void controlaR(String jsonData)
 {
   // Tamaño máximo del JSON que esperas
   const size_t capacity = JSON_ARRAY_SIZE(5) + 5 * JSON_OBJECT_SIZE(3) + 256;
@@ -52,7 +57,6 @@ void controlarLeds(String jsonData)
   // Parsea el JSON
   DynamicJsonDocument doc(capacity);
   deserializeJson(doc, jsonData);
-
 
   // Accede a los datos y controla los LEDs
   for (size_t i = 0; i < doc.size(); i++)
@@ -67,7 +71,6 @@ void controlarLeds(String jsonData)
     {
       if (nombre == "Led1")
       {
-        Serial.println("Encendiendo led 1");
         encenderLeds(led1);
       }
       if (nombre == "Led2")
@@ -101,7 +104,7 @@ void controlarLeds(String jsonData)
       {
         apagarLeds(led3);
       }
-      if (nombre=="Led4")
+      if (nombre == "Led4")
       {
         apagarLeds(led4);
       }
@@ -113,7 +116,7 @@ void controlarLeds(String jsonData)
   }
 }
 
-void POST(String path)
+void POST(String path, int dato, String name)
 {
   HTTPClient http;
 
@@ -121,8 +124,8 @@ void POST(String path)
 
   http.addHeader("Content-Type", "application/json");
 
-  String json = "{\"title\":\"My post\", \"content\":\"This is my post.\"}";
-
+  String json = "{\"name\":\"" + name + "\", \"temperature\":" + String(dato) + "}";
+  Serial.println(json);
   int httpCode = http.POST(json);
 
   if (httpCode > 0)
@@ -147,7 +150,6 @@ void POST(String path)
 
   delay(500);
 }
-
 void setup()
 {
   Serial.begin(9600);
@@ -179,7 +181,9 @@ void loop()
   Serial.println(hostS);
   String respuesta = GET(hostS);
   Serial.println(respuesta);
-  delay(300);
-  controlarLeds(respuesta);
-  delay(1000);
+  controlaR(respuesta);
+  delay(10);
+  String host2 = "http://" + String(host) + ":" + String(port) + "/Newta";
+  Serial.println(host2);
+  // POST(host2, 2, "Desde Esp32");
 }
