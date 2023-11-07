@@ -1,17 +1,19 @@
 #include <WiFi.h>
+#include <ESP32Servo.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
 // Configuración de la red Wi-Fi
-//const char *ssid = "Galaxy Note10+";
-//const char *password = "ectWy729nc.042swVGT";
+const char *ssid = "Galaxy Note10+";
+const char *password = "ectWy729nc.042swVGT";
 // const char *ssid = "U-SIGLOXXI";
 // const char *password = "UdeCsigloXXI";
 //  const char *ssid = "ERIKA MENDEZ";
 //  const char *password = "Or7oIOZ*1G98OiRL";
-const char *ssid = "FAMILIA SB";
-const char *password = "88180137";
-const char *host = "192.168.20.95"; //"192.168.126.75";//
+
+// const char *ssid = "FAMILIA SB";
+// const char *password = "88180137";
+const char *host = "192.168.140.75"; //
 const int port = 3000;
 
 /*pines leds*/
@@ -20,6 +22,8 @@ byte led2 = 33;
 byte led3 = 25;
 byte led4 = 26;
 byte led5 = 27;
+byte SERVO_PIN = 12;
+Servo servo;
 
 void encenderLeds(int led)
 {
@@ -44,7 +48,8 @@ String GET(String hostS)
   if (httpResponseCode > 0)
   {
     response = http.getString(); // Obtiene la respuesta del servidor
-    http.end();                  // Cierra la conexión HTTP
+    delay(4000);
+    http.end(); // Cierra la conexión HTTP
   }
   return response;
 }
@@ -173,6 +178,9 @@ void setup()
   pinMode(led3, OUTPUT);
   pinMode(led4, OUTPUT);
   pinMode(led5, OUTPUT);
+
+  /*servoMotores*/
+  servo.attach(SERVO_PIN, 500, 2500);
 }
 
 void loop()
@@ -186,4 +194,10 @@ void loop()
   String host2 = "http://" + String(host) + ":" + String(port) + "/Newta";
   Serial.println(host2);
   // POST(host2, 2, "Desde Esp32");
+  for (int pos = 180; pos >= 0; pos -= 1) {
+    //Movemos el servo a los grados que le entreguemos
+    servo.write(pos);
+    Serial.println("Posicion: " + String(pos));
+    delay(1);
+  }
 }
