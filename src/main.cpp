@@ -22,8 +22,10 @@ byte led2 = 33;
 byte led3 = 25;
 byte led4 = 26;
 byte led5 = 27;
-byte SERVO_PIN = 12;
+byte SERVO_1 = 22;
+byte SERVO_2 = 23;
 Servo servo;
+Servo servo2;
 
 void encenderLeds(int led)
 {
@@ -68,10 +70,13 @@ void controlaR(String jsonData)
   {
     const String nombre = doc[i]["nombre"];
     const String statusLed = doc[i]["statusLed"];
+    const int degrees = doc[i]["degrees"];
     Serial.println(nombre);
     Serial.println(statusLed);
-    delay(600);
+    Serial.println(degrees);
+    delay(60);
     // Aquí puedes realizar el control de los LEDs según los datos obtenidos
+
     if (statusLed == "HIGH")
     {
       if (nombre == "Led1")
@@ -118,6 +123,17 @@ void controlaR(String jsonData)
         apagarLeds(led5);
       }
     }
+
+     if (nombre == "Puerta1S")
+     {
+       servo.write(degrees);
+       delay(10);
+     }
+     if (nombre == "Puerta2S")
+     {
+       servo2.write(degrees);
+       delay(10);
+     }
   }
 }
 
@@ -160,7 +176,7 @@ void setup()
   Serial.begin(9600);
   // Conéctate a la red Wi-Fi
   WiFi.begin(ssid, password);
-  delay(200);
+  delay(10);
 
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -180,7 +196,8 @@ void setup()
   pinMode(led5, OUTPUT);
 
   /*servoMotores*/
-  servo.attach(SERVO_PIN, 500, 2500);
+  servo.attach(SERVO_1, 500, 2500);
+  servo2.attach(SERVO_2, 500, 2500);
 }
 
 void loop()
@@ -188,16 +205,10 @@ void loop()
   String hostS = "http://" + String(host) + ":" + String(port) + "/Stado";
   Serial.println(hostS);
   String respuesta = GET(hostS);
-  Serial.println(respuesta);
   controlaR(respuesta);
-  delay(10);
+  Serial.println(respuesta);
   String host2 = "http://" + String(host) + ":" + String(port) + "/Newta";
   Serial.println(host2);
-  // POST(host2, 2, "Desde Esp32");
-  for (int pos = 180; pos >= 0; pos -= 1) {
-    //Movemos el servo a los grados que le entreguemos
-    servo.write(pos);
-    Serial.println("Posicion: " + String(pos));
-    delay(1);
-  }
+  respuesta = GET(hostS);
+  controlaR(respuesta);
 }
