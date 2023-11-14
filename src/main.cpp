@@ -4,18 +4,28 @@
 #include <ArduinoJson.h>
 
 // Configuración de la red Wi-Fi
-const char *ssid = "Galaxy Note10+";
-const char *password = "ectWy729nc.042swVGT";
-// const char *ssid = "U-SIGLOXXI";
-// const char *password = "UdeCsigloXXI";
-//  const char *ssid = "ERIKA MENDEZ";
-//  const char *password = "Or7oIOZ*1G98OiRL";
 
-// const char *ssid = "FAMILIA SB";
-// const char *password = "88180137";
-const char *host = "192.168.140.75"; //
+/*
+ const char *ssid = "Galaxy Note10+";
+ const char *password = "ectWy729nc.042swVGT";
+ const char *host = "192.168.140.75";*/
+
+/*
+ const char *ssid = "U-SIGLOXXI";
+ const char *password = "UdeCsigloXXI";*/
+
+/*
+const char *ssid = "ERIKA MENDEZ";
+const char *password = "Or7oIOZ*1G98OiRL";
+const char *host = "192.168.10.19";*/
+
+const char *ssid = "R5IO391";
+const char *password = "CuxPJGt50y70VUD";
+const char *host = "192.168.137.1";
 const int port = 3000;
 
+String hostS = "http://" + String(host) + ":" + String(port) + "/Stado";
+String host2 = "http://" + String(host) + ":" + String(port) + "/Newta";
 /*pines leds*/
 byte led1 = 32;
 byte led2 = 33;
@@ -24,6 +34,7 @@ byte led4 = 26;
 byte led5 = 27;
 byte SERVO_1 = 22;
 byte SERVO_2 = 23;
+byte senTemperature = 34;
 Servo servo;
 Servo servo2;
 
@@ -42,17 +53,32 @@ void apagarLeds(int led)
 // metodo GET
 String GET(String hostS)
 {
-  String response;
   HTTPClient http;
-  // URL de la página web a la que deseas acceder
+
   http.begin(hostS);
+
+  String response;
+
   int httpResponseCode = http.GET(); // Realiza una solicitud GET
+  unsigned long tiempo_inicio = millis();
+  while (httpResponseCode != 200 && ((millis() - tiempo_inicio) < 5000))
+  {
+    httpResponseCode = http.GET(); // Realiza una solicitud GET
+    Serial.println("Esperando respuesta del servidor " + String(httpResponseCode));
+  }
+
   if (httpResponseCode > 0)
   {
     response = http.getString(); // Obtiene la respuesta del servidor
-    delay(4000);
-    http.end(); // Cierra la conexión HTTP
+    http.end();                  // Cierra la conexión HTTP
   }
+  else
+  {
+    Serial.print("Error on sending GET: ");
+    Serial.println(httpResponseCode);
+    response = "Error";
+  }
+
   return response;
 }
 
@@ -66,14 +92,14 @@ void controlaR(String jsonData)
   deserializeJson(doc, jsonData);
 
   // Accede a los datos y controla los LEDs
-  for (size_t i = 0; i < doc.size(); i++)
+  for (size_t i = 0; i < doc["data"].size(); i++)
   {
-    const String nombre = doc[i]["nombre"];
-    const String statusLed = doc[i]["statusLed"];
-    const int degrees = doc[i]["degrees"];
-    Serial.println(nombre);
-    Serial.println(statusLed);
-    Serial.println(degrees);
+    const String nombre = doc["data"][i]["nombre"];
+    const String statusLed = doc["data"][i]["statusLed"];
+    const int degrees = doc["data"][i]["degrees"];
+    Serial.println("Nombre " + nombre);
+    Serial.println("Estado led " + statusLed);
+    Serial.println("Grados " + degrees);
     delay(60);
     // Aquí puedes realizar el control de los LEDs según los datos obtenidos
 
@@ -124,16 +150,16 @@ void controlaR(String jsonData)
       }
     }
 
-     if (nombre == "Puerta1S")
-     {
-       servo.write(degrees);
-       delay(10);
-     }
-     if (nombre == "Puerta2S")
-     {
-       servo2.write(degrees);
-       delay(10);
-     }
+    if (nombre == "Puerta1S")
+    {
+      servo.write(degrees);
+      delay(10);
+    }
+    if (nombre == "Puerta2S")
+    {
+      servo2.write(degrees);
+      delay(10);
+    }
   }
 }
 
@@ -180,7 +206,6 @@ void setup()
 
   while (WiFi.status() != WL_CONNECTED)
   {
-    delay(1000);
     Serial.println("Conectando a la red Wi-Fi...");
   }
 
@@ -202,13 +227,12 @@ void setup()
 
 void loop()
 {
-  String hostS = "http://" + String(host) + ":" + String(port) + "/Stado";
   Serial.println(hostS);
   String respuesta = GET(hostS);
-  controlaR(respuesta);
+  if (respuesta != "Error")
+  {
+    controlaR(respuesta);
+  }
   Serial.println(respuesta);
-  String host2 = "http://" + String(host) + ":" + String(port) + "/Newta";
-  Serial.println(host2);
-  respuesta = GET(hostS);
-  controlaR(respuesta);
+  // Serial.println(host2);
 }
